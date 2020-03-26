@@ -120,7 +120,7 @@ if (!isset($_SESSION['loggedin'])){
                 $sentimentScore = $sentiment['score'];
 
                 # Display appropriate output
-                if($sentimentScore < -.25 )
+                if($sentimentScore < -.10 )
                 {
                     echo "<p class='card-text'>You addressed a lot of the negatives in your journal.
                     Make sure to avoid 'should' statements and to not make hasty conclusions or assumptions.</p>";
@@ -134,9 +134,9 @@ if (!isset($_SESSION['loggedin'])){
 
                     echo "<p class='card-text'>Also, if you need support, feel free <a class='text-primary' href='crisis.php'>to contact chat-lines for advice!</a> No crisis is too small! </p>";
                 }
-                else if($sentimentScore >= -.25 and $sentimentScore <= .25)
+                else if($sentimentScore >= -.10 and $sentimentScore <= .10)
                 {
-                    echo "<p class='card-text'>You seem to show some conflicting thoughts. While it is important to
+                    echo "<p class='card-text'>Those are some great thoughts! It seems you're at an okay place, emotionally. Remember, while it is important to
                     take the time to analyze and acknowledge negatives of your day, make sure to place more emphasis
                     on the positives! Think of ways to overcome challenges and look at conflicts optimistically! </p>";
 

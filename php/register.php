@@ -33,7 +33,7 @@
 					<i class="fas fa-envelope"></i>
 				</label>
 				<input type="email" name="email" placeholder="Email" id="email" required>
-        <a href="\dactr/index.php" style="padding:5px">Go back to login</a>
+        <a href="../index.php" style="padding:5px">Go back to login</a>
 				<input type="submit" value="Register">
 			</form>
 

@@ -2,7 +2,7 @@
 session_start();
 //redirect if not logged in
 if (!isset($_SESSION['loggedin'])){
-  header('Location: \dactr/index.php');
+  header('Location: ../index.php');
   exit;
 }
 ?>
@@ -17,7 +17,7 @@ if (!isset($_SESSION['loggedin'])){
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
-    <title>Dactr | My Results</title>
+    <title>Dactr | My Feedback</title>
 
     <!-- Custom style -->
     <link href="\dactr/css/style.css" rel="stylesheet" type="text/css">
@@ -25,6 +25,7 @@ if (!isset($_SESSION['loggedin'])){
   </head>
 
   <body class="text-center">
+    <div id='wrapper'>
     <!-- Main container -->
     <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
       <!-- Header -->
@@ -35,7 +36,7 @@ if (!isset($_SESSION['loggedin'])){
             <a class="nav-link" href="home.php">Home</a>
             <a class="nav-link active" href="journal.php">My Diary</a>
             <a class="nav-link" href="profile.php">My Profile</a>
-            <a class="nav-link" href="\dactr/php/logout.php">Logout</a>
+            <a class="nav-link" href="../php/logout.php">Logout</a>
           </nav>
         </div>
       </header>
@@ -61,8 +62,10 @@ if (!isset($_SESSION['loggedin'])){
           				exit('Failed to connect ' . mysqli_connect_error());
           			}
 
+                //Define journal variable for use in analysis
+                $journal = '';
+
                 //Find and display today's latest journal made by the patient
-                //$date = $date = date('m/d/Y');
                 $result = $connection->query("SELECT username, date, journal FROM journals ORDER BY id DESC LIMIT 1");
                 $noName = 0;
                 if ($result->num_rows > 0){
@@ -70,6 +73,7 @@ if (!isset($_SESSION['loggedin'])){
                     if ($row['username'] == $_SESSION['name']){
                       echo '<p class="card-text">'.$row['journal'].'</p>';
                       echo '<p class="card-text mb-2">- <em>'.$_SESSION['name'].' '.$row['date'].'</em></p>';
+                      $journal = $row['journal'];
                       $noName = 1;
                       break;
                     }
@@ -85,29 +89,111 @@ if (!isset($_SESSION['loggedin'])){
               </div>
             </div>
             <!--Feedback card -->
+            <div class ="card" style="text-align: left">
+              <div class="card-header">Feedback from Dactr</div>
+              <div class="card-body">
+                <h5 class="card-title">Dear <?=$_SESSION['name']?>,</h5>
 
-            <?php
-            /*
-            # Includes the autoloader for libraries installed with composer
-            require __DIR__ . '/vendor/autoload.php';
-            # Imports the Google Cloud client library
-            use Google\Cloud\Language\LanguageClient;
-            # Your Google Cloud Platform project ID
-            $projectId = 'dactr-272020';
-            # Instantiates a client
-            $language = new LanguageClient([
-              'projectId' => $projectId
-            ]);
-            # The text to analyze
-            $text = 'Hello, world!';
-            # Detects the sentiment of the text
-            $annotation = $language->analyzeSentiment($text);
-            $sentiment = $annotation->sentiment();
-            echo 'Text: ' . $text . '
-            Sentiment: ' . $sentiment['score'] . ', ' . $sentiment['magnitude'];
-            */
-            $connection->close();
-            ?>
+                <?php
+                # Has a journal been written yet?
+                if ($noName == 0){
+                  ?><p class="card-text"><em>You haven't written in your diary yet!</em></p><?php
+                  exit();
+                }
+
+                # Begin sentiment analysis with nlp api
+                # Includes the autoloader for libraries installed with composer
+                require '/home/bitnami/vendor/autoload.php';
+
+                # Imports the Google Cloud client library
+                use Google\Cloud\Language\LanguageClient;
+
+                # Your Google Cloud Platform project ID
+                $projectId = 'dactr-272020';
+
+                # Instantiates a client
+                $language = new LanguageClient(['projectId' => $projectId]);
+
+                # Detects the sentiment of current journal and assigns it to sentimentScore
+                $annotation = $language->analyzeSentiment($journal);
+                $sentiment = $annotation->sentiment();
+                $sentimentScore = $sentiment['score'];
+
+                # Display appropriate output
+                if($sentimentScore < -.10 )
+                {
+                    echo "<p class='card-text'>You addressed a lot of the negatives in your journal.
+                    Make sure to avoid 'should' statements and to not make hasty conclusions or assumptions.</p>";
+
+                    echo "<p class='card-text'>Try thinking about some of the positives! What are interactions and events that you enjoyed today?
+                    Even if it's as simple as having a cookie after dinner, go over a few things you may be thankful for!
+                    Also, make sure to think of ways to overcome challenges and look at conflicts optimistically! </p>";
+
+                    echo "<p class='card-text'>Remember to take time out of your day for self-healing (i.e. exercising, taking walks, yoga).
+                    Whether it be a short walk in your neighborhood or a 2 minute meditation, small actions add up to big results!</p>";
+
+                    echo "<p class='card-text'>Also, if you need support, feel free <a class='text-primary' href='crisis.php'>to contact chat-lines for advice!</a> No crisis is too small! </p>";
+                }
+                else if($sentimentScore >= -.10 and $sentimentScore <= .10)
+                {
+                    echo "<p class='card-text'>Those are some great thoughts! It seems you're at an okay place, emotionally. Remember, while it is important to
+                    take the time to analyze and acknowledge negatives of your day, make sure to place more emphasis
+                    on the positives! Think of ways to overcome challenges and look at conflicts optimistically! </p>";
+
+                    echo "<p class='card-text'>Remember to take time out of your day for self-healing (i.e. exercising, taking walks, yoga).
+                    Whether it be a short walk in your neighborhood or a 2 minute meditation, small actions add up to big results!</p>";
+                }
+                else
+                {
+                    echo "<p class='card-text'>You are on the right track! Keep up the positive energy! Remember to continue thinking of
+                    ways to overcome challenges and maintain an open mindset. Logically thinking through conflicts
+                    and approaching them optimistically is key to overcoming them. Continue the great work!</p>";
+
+                    echo "<p class='card-text'>Remember to take time out of your day to continue self-healing (i.e. exercising, taking walks, yoga).
+                    Whether it be a short walk in your neighborhood or a 2 minute meditation, small actions add up to big results!</p>";
+                }
+                /* Previous entry response system
+                # Obtain previous journal
+                $current = 0;
+                $prevJournal = '';
+                $result = $connection->query("SELECT username, date, journal FROM journals ORDER BY id DESC LIMIT 1");
+                if ($result->num_rows > 0){
+                  while($row = $result->fetch_assoc()){
+                    if ($row['username'] == $_SESSION['name']){
+                      if ($current == 1){ $prevJournal = $row['journal']; }
+                      $current = 1;
+                    }
+                  }
+                } else { exit(); }
+
+                if ($prevJournal == ''){
+                  exit();
+                }
+                echo '<p>'.$prevJournal.'</p>';
+                # Detects the sentiment of previous journal and assigns it to prevSentimentScore
+                $annotation = $language->analyzeSentiment($prevJournal);
+                $sentiment = $annotation->sentiment();
+                $prevSentimentScore = $sentiment['score'];
+                echo '<p>'.$prevSentimentScore.'</p>';
+                if($prevSentimentScore < $sentimentScore)
+                {
+                    echo "<p class='card-text'>I see you have made some progress since your last entry! Remember to take time out of your day for self-healing (i.e. exercising, taking walks, yoga).
+                    Whether it be a short walk in your neighborhood or a 2 minute meditation, small actions add up to big results!</p>";
+                }
+                else
+                {
+                    echo "<p class='card-text'>You seem to be a bit more negative in this entry than the last. Remember to take time out of your day for self-healing (i.e. exercising, taking walks, yoga).
+                    Also, if you need support, feel free <a href='crisis.php'>to contact chat-lines for advice!</a> No crisis is too small! </p>";
+                }
+                */
+                $connection->close();
+                ?>
+
+                <p class='card-text'>Thanks for taking the time to track your feelings for the day! See you next time, <?=$_SESSION['name']?>!</p>
+                <p class="card-text mb-2">- <em>Dactr</em></p>
+              </div>
+            </div>
+
 
       </main>
       <!-- Footer -->
@@ -118,6 +204,7 @@ if (!isset($_SESSION['loggedin'])){
         </div>
       </footer>
     </div>
+  </div>
   </body>
 
 </html>

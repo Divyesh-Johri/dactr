@@ -3,5 +3,5 @@ session_start();
 session_destroy();
 
 // Redirect to the login page
-header('Location: \dactr/index.php');
+header('Location: ../index.php');
 ?>

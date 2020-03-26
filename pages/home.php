@@ -2,7 +2,7 @@
 session_start();
 //redirect if not logged in
 if (!isset($_SESSION['loggedin'])){
-  header('Location: \dactr/index.php');
+  header('Location: ../index.php');
   exit;
 }
 ?>
@@ -25,6 +25,7 @@ if (!isset($_SESSION['loggedin'])){
   </head>
 
   <body class="text-center">
+    <div id='wrapper'>
     <!-- Main container -->
     <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
       <!-- Header -->
@@ -35,7 +36,7 @@ if (!isset($_SESSION['loggedin'])){
             <a class="nav-link active" href="home.php">Home</a>
             <a class="nav-link" href="journal.php">My Diary</a>
             <a class="nav-link" href="profile.php">My Profile</a>
-            <a class="nav-link" href="\dactr/php/logout.php">Logout</a>
+            <a class="nav-link" href="../php/logout.php">Logout</a>
           </nav>
         </div>
       </header>
@@ -59,6 +60,7 @@ if (!isset($_SESSION['loggedin'])){
         </div>
       </footer>
     </div>
+  </div>
   </body>
 
   </html>

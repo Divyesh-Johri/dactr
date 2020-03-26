@@ -33,7 +33,7 @@ This is where the app will greet you by saying Hello, *username*! Will ask for y
 ## My Dairy 
 Here you will be asked to write your thoughts for the day. After you submit your thoughts you will be forwarded to a feedback page.
 
-### The feedback page
+### Feedback
 Dactr will read your journal and give you feedback based on what it has read. You can also few your previous entries with their feedback to view your progress.
 
 ## My Profile

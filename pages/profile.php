@@ -43,6 +43,7 @@ $stmt->close();
   </head>
 
   <body class="text-center">
+		<div id='wrapper'>
 		<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
 			<!-- Header -->
 			<header class="masthead">
@@ -76,6 +77,7 @@ $stmt->close();
         </div>
       </footer>
 		</div>
+	</div>
 	</body>
 
 </html>

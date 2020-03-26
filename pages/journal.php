@@ -25,6 +25,7 @@ if (!isset($_SESSION['loggedin'])){
   </head>
 
   <body class="text-center">
+    <div id='wrapper'>
     <!-- Main container -->
     <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
       <!-- Header -->
@@ -114,6 +115,7 @@ if (!isset($_SESSION['loggedin'])){
         </div>
       </footer>
     </div>
+  </div>
   </body>
 
 </html>

@@ -25,6 +25,7 @@ if (!isset($_SESSION['loggedin'])){
   </head>
 
   <body class="text-center">
+    <div id='wrapper'>
     <!-- Main container -->
     <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
       <!-- Header -->
@@ -61,8 +62,10 @@ if (!isset($_SESSION['loggedin'])){
           				exit('Failed to connect ' . mysqli_connect_error());
           			}
 
+                //Define journal variable for use in analysis
+                $journal = '';
+
                 //Find and display today's latest journal made by the patient
-                //$date = $date = date('m/d/Y');
                 $result = $connection->query("SELECT username, date, journal FROM journals ORDER BY id DESC LIMIT 1");
                 $noName = 0;
                 if ($result->num_rows > 0){
@@ -70,6 +73,7 @@ if (!isset($_SESSION['loggedin'])){
                     if ($row['username'] == $_SESSION['name']){
                       echo '<p class="card-text">'.$row['journal'].'</p>';
                       echo '<p class="card-text mb-2">- <em>'.$_SESSION['name'].' '.$row['date'].'</em></p>';
+                      $journal = $row['journal'];
                       $noName = 1;
                       break;
                     }
@@ -86,15 +90,20 @@ if (!isset($_SESSION['loggedin'])){
             </div>
             <!--Feedback card -->
             <div class ="card" style="text-align: left">
-              <div class="card-header">Sentiment Analysis</div>
+              <div class="card-header">Feedback from Dactr</div>
               <div class="card-body">
                 <h5 class="card-title">Dear <?=$_SESSION['name']?>,</h5>
 
                 <?php
+                # Has a journal been written yet?
+                if ($noName == 0){
+                  ?><p class="card-text"><em>You haven't written in your diary yet!</em></p><?php
+                  exit();
+                }
 
+                # Begin sentiment analysis with nlp api
                 # Includes the autoloader for libraries installed with composer
-                include '/home/bitnami/vendor/autoload.php';
-                echo '<p>test2</p>';
+                require '/home/bitnami/vendor/autoload.php';
 
                 # Imports the Google Cloud client library
                 use Google\Cloud\Language\LanguageClient;
@@ -105,19 +114,83 @@ if (!isset($_SESSION['loggedin'])){
                 # Instantiates a client
                 $language = new LanguageClient(['projectId' => $projectId]);
 
-                # The text to analyze
-                $text = "I love garlic bread! It's by far the best type of bread on earth.";
-                echo '<p>text</p>';
-
-                # Detects the sentiment of the text   analyzeSentiment()
-                $annotation = $language->analyzeSentiment($text);
-                echo '<p>bro i am screaming 1</p>';
+                # Detects the sentiment of current journal and assigns it to sentimentScore
+                $annotation = $language->analyzeSentiment($journal);
                 $sentiment = $annotation->sentiment();
-                echo '<p>bro i am screaming 2</p>';
-                echo "<p>Sentiment: " . $sentiment['score'] . "</p>";
+                $sentimentScore = $sentiment['score'];
 
+                # Display appropriate output
+                if($sentimentScore < -.25 )
+                {
+                    echo "<p class='card-text'>You addressed a lot of the negatives in your journal.
+                    Make sure to avoid 'should' statements and to not make hasty conclusions or assumptions.</p>";
+
+                    echo "<p class='card-text'>Try thinking about some of the positives! What are interactions and events that you enjoyed today?
+                    Even if it's as simple as having a cookie after dinner, go over a few things you may be thankful for!
+                    Also, make sure to think of ways to overcome challenges and look at conflicts optimistically! </p>";
+
+                    echo "<p class='card-text'>Remember to take time out of your day for self-healing (i.e. exercising, taking walks, yoga).
+                    Whether it be a short walk in your neighborhood or a 2 minute meditation, small actions add up to big results!</p>";
+
+                    echo "<p class='card-text'>Also, if you need support, feel free <a class='text-primary' href='crisis.php'>to contact chat-lines for advice!</a> No crisis is too small! </p>";
+                }
+                else if($sentimentScore >= -.25 and $sentimentScore <= .25)
+                {
+                    echo "<p class='card-text'>You seem to show some conflicting thoughts. While it is important to
+                    take the time to analyze and acknowledge negatives of your day, make sure to place more emphasis
+                    on the positives! Think of ways to overcome challenges and look at conflicts optimistically! </p>";
+
+                    echo "<p class='card-text'>Remember to take time out of your day for self-healing (i.e. exercising, taking walks, yoga).
+                    Whether it be a short walk in your neighborhood or a 2 minute meditation, small actions add up to big results!</p>";
+                }
+                else
+                {
+                    echo "<p class='card-text'>You are on the right track! Keep up the positive energy! Remember to continue thinking of
+                    ways to overcome challenges and maintain an open mindset. Logically thinking through conflicts
+                    and approaching them optimistically is key to overcoming them. Continue the great work!</p>";
+
+                    echo "<p class='card-text'>Remember to take time out of your day to continue self-healing (i.e. exercising, taking walks, yoga).
+                    Whether it be a short walk in your neighborhood or a 2 minute meditation, small actions add up to big results!</p>";
+                }
+                /* Previous entry response system
+                # Obtain previous journal
+                $current = 0;
+                $prevJournal = '';
+                $result = $connection->query("SELECT username, date, journal FROM journals ORDER BY id DESC LIMIT 1");
+                if ($result->num_rows > 0){
+                  while($row = $result->fetch_assoc()){
+                    if ($row['username'] == $_SESSION['name']){
+                      if ($current == 1){ $prevJournal = $row['journal']; }
+                      $current = 1;
+                    }
+                  }
+                } else { exit(); }
+
+                if ($prevJournal == ''){
+                  exit();
+                }
+                echo '<p>'.$prevJournal.'</p>';
+                # Detects the sentiment of previous journal and assigns it to prevSentimentScore
+                $annotation = $language->analyzeSentiment($prevJournal);
+                $sentiment = $annotation->sentiment();
+                $prevSentimentScore = $sentiment['score'];
+                echo '<p>'.$prevSentimentScore.'</p>';
+                if($prevSentimentScore < $sentimentScore)
+                {
+                    echo "<p class='card-text'>I see you have made some progress since your last entry! Remember to take time out of your day for self-healing (i.e. exercising, taking walks, yoga).
+                    Whether it be a short walk in your neighborhood or a 2 minute meditation, small actions add up to big results!</p>";
+                }
+                else
+                {
+                    echo "<p class='card-text'>You seem to be a bit more negative in this entry than the last. Remember to take time out of your day for self-healing (i.e. exercising, taking walks, yoga).
+                    Also, if you need support, feel free <a href='crisis.php'>to contact chat-lines for advice!</a> No crisis is too small! </p>";
+                }
+                */
                 $connection->close();
                 ?>
+
+                <p class='card-text'>Thanks for taking the time to track your feelings for the day! See you next time, <?=$_SESSION['name']?>!</p>
+                <p class="card-text mb-2">- <em>Dactr</em></p>
               </div>
             </div>
 
@@ -131,6 +204,7 @@ if (!isset($_SESSION['loggedin'])){
         </div>
       </footer>
     </div>
+  </div>
   </body>
 
 </html>

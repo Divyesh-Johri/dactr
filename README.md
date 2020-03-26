@@ -20,13 +20,6 @@ If you are a returning user you will be asked.
 1. Enter your username
 2. Provide the correct password to you account
 
-### Forgotten password
-If you have forgotten your password no worries, follow these steps
-1. On the sign in page of the app tap the Forgotten Password button 
-2. Enter the email linked to your account
-3. Once you have received the password reset email follow the steps listed in the email
-4. Finally your password will be reset and you will be able to log into the app.
-
 # The Home screen
 This is where the app will greet you by saying Hello, *username*! Will ask for you to write your daily diary.
 

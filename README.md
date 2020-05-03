@@ -1,6 +1,7 @@
 
 # Welcome to Dactr
 An AI powered application that provides assistance for healthier lifestyle choices!
+Visit https://dactrgroup.com/ for more info.
 # Getting started
 ## First time setup
 If you do not have a Dactr account already please click "click here to register" below the password box. You will be prompted to
